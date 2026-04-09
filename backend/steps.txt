@@ -1,0 +1,18 @@
+
+1.  cd backend
+2.  python -m venv venv
+3.  .\venv\Scripts\Activate
+4.  pip install -r requirements.txt
+5.  python train_model.py
+
+  What happens:
+    - Downloads the Bitext dataset from HuggingFace (26,872 samples)
+    - Downloads NLTK data (stopwords, wordnet)
+    - Preprocesses all text (lowercase, lemmatize, remove stopwords)
+    - Trains a TF-IDF + LinearSVC model for CATEGORY classification (11 classes)
+    - Trains a TF-IDF + LinearSVC model for INTENT classification (27 classes)
+    - Prints classification reports for both models
+    - Saves model artifacts to the artifacts/ folder
+
+5. Starts the API server on http://localhost:8000
+6. uvicorn main:app --host 0.0.0.0 --port 8000 --reload
