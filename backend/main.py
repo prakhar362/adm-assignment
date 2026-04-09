@@ -287,6 +287,54 @@ def get_ticket(ticket_id: int, db: Session = Depends(get_db)):
     )
 
 
+@app.get(
+    "/api/tickets",
+    response_model=list[TicketDetailResponse],
+    summary="Retrieve all tickets",
+)
+def get_tickets(db: Session = Depends(get_db), limit: int = 100):
+    """Fetch the most recent tickets with their predictions and routing."""
+    tickets = db.query(Ticket).order_by(Ticket.created_at.desc()).limit(limit).all()
+    
+    results = []
+    for ticket in tickets:
+        pred_resp = None
+        if ticket.prediction:
+            p = ticket.prediction
+            pred_resp = PredictionResponse(
+                predicted_category=p.predicted_category,
+                category_confidence=p.confidence,
+                predicted_intent=p.predicted_intent or "",
+                intent_confidence=0.0,
+                model_version=p.model_version,
+                inference_time_ms=p.inference_time_ms or 0.0,
+                top_categories=[],
+            )
+
+        route_resp = None
+        if ticket.routing_decision:
+            r = ticket.routing_decision
+            route_resp = RoutingResponse(
+                assigned_queue=r.assigned_queue,
+                priority=r.priority,
+                escalated=bool(r.escalated),
+                reason=r.reason or "",
+            )
+
+        results.append(TicketDetailResponse(
+            ticket_id=ticket.id,
+            customer_name=ticket.customer_name,
+            customer_email=ticket.customer_email,
+            subject=ticket.subject,
+            description=ticket.description,
+            language=ticket.language,
+            source_channel=ticket.source_channel,
+            prediction=pred_resp,
+            routing=route_resp,
+            created_at=ticket.created_at.isoformat(),
+        ))
+    return results
+
 @app.get("/api/health", response_model=HealthResponse, summary="Health check")
 def health_check():
     return HealthResponse(
