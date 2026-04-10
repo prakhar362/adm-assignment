@@ -98,6 +98,8 @@ class Prediction(Base):
     predicted_category = Column(String(100), nullable=False)
     predicted_intent = Column(String(150), nullable=True)
     confidence = Column(Float, nullable=False)
+    intent_confidence = Column(Float, nullable=True)
+    top_categories = Column(Text, nullable=True)
     model_version = Column(String(50), nullable=False)
     inference_time_ms = Column(Float, nullable=True)
     created_at = Column(

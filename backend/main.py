@@ -192,6 +192,8 @@ def route_ticket(payload: TicketRequest, db: Session = Depends(get_db)):
         predicted_category=pred.predicted_category,
         predicted_intent=pred.predicted_intent,
         confidence=pred.category_confidence,
+        intent_confidence=pred.intent_confidence,
+        top_categories=json.dumps(pred.top_categories),
         model_version=pred.model_version,
         inference_time_ms=pred.inference_time_ms,
     )
@@ -253,14 +255,21 @@ def get_ticket(ticket_id: int, db: Session = Depends(get_db)):
     pred_resp = None
     if ticket.prediction:
         p = ticket.prediction
+        top_cats = []
+        if p.top_categories:
+            try:
+                top_cats = json.loads(p.top_categories)
+            except Exception:
+                pass
+
         pred_resp = PredictionResponse(
             predicted_category=p.predicted_category,
             category_confidence=p.confidence,
             predicted_intent=p.predicted_intent or "",
-            intent_confidence=0.0,
+            intent_confidence=p.intent_confidence or 0.0,
             model_version=p.model_version,
             inference_time_ms=p.inference_time_ms or 0.0,
-            top_categories=[],
+            top_categories=top_cats,
         )
 
     route_resp = None
@@ -301,14 +310,21 @@ def get_tickets(db: Session = Depends(get_db), limit: int = 100):
         pred_resp = None
         if ticket.prediction:
             p = ticket.prediction
+            top_cats = []
+            if p.top_categories:
+                try:
+                    top_cats = json.loads(p.top_categories)
+                except Exception:
+                    pass
+
             pred_resp = PredictionResponse(
                 predicted_category=p.predicted_category,
                 category_confidence=p.confidence,
                 predicted_intent=p.predicted_intent or "",
-                intent_confidence=0.0,
+                intent_confidence=p.intent_confidence or 0.0,
                 model_version=p.model_version,
                 inference_time_ms=p.inference_time_ms or 0.0,
-                top_categories=[],
+                top_categories=top_cats,
             )
 
         route_resp = None
